@@ -4,7 +4,7 @@ machine = "A10-EVB-V1.2"
 
 [target]
 boot_clock = 1150
-dcdc2_vol = 1600
+dcdc2_vol = 1500
 dcdc3_vol = 1300
 ldo2_vol = 3000
 ldo3_vol = 2800
@@ -922,5 +922,5 @@ pin_1 = port:PH10<1><default><default><0>
 pin_2 = port:PH20<1><default><default><1>
 
 [dynamic]
-MAC = "000a20001000"
+MAC = "000ae4cd855c"
 
