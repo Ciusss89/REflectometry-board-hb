@@ -4,6 +4,10 @@
 # Politecnico di torino, REflectometry projcet
 # Dipartimento elettronica, remote sensing.
 
+sddev="/dev/sdc"
+sdp1="/dev/sdc1"
+sdp2="/dev/sdc2"
+sdp3="/dev/sdc3"
 
 clear
 
@@ -11,11 +15,11 @@ export UMNT="0"
 
 function sd_mnt {
         mkdir -p sd_boot
-        sudo mount /dev/mmcblk0p1 sd_boot
+        sudo mount $sdp1 sd_boot
         mkdir -p sd_rootfs
-        sudo mount /dev/mmcblk0p2 sd_rootfs
+        sudo mount $sdp2 sd_rootfs
         mkdir -p sd_data	
-	sudo mount /dev/mmcblk0p3 sd_data
+	sudo mount $sdp3 sd_data
 	UMNT="1"
 }
 
@@ -26,27 +30,30 @@ echo "****CONTINUE ONLY IF YOUR SD-CARD RECOGNIZED AS mmcblk0****"
 
 read -p "  Build sd partions?? [y/n]: " rd
 if [ $rd =  "y" ]; then
-	sudo fdisk -l /dev/mmcblk0
+	sudo fdisk -l $sddev
 	read -p "  CONTINUE: " rd
 	if [ $rd =  "n" ]; then
 		exit
 	elif [ $rd =  "y" ]; then
 
-		sudo fdisk /dev/mmcblk0
-		sudo fdisk -l /dev/mmcblk0
+		sudo fdisk $sddev
+		echo "Partioni:"
+		sudo fdisk -l $sddev
 
-		sudo mkfs.vfat -n "HB-BOOT" /dev/mmcblk0p1 
-		sudo mkfs.ext4 -L "HB-ROOT" /dev/mmcblk0p2
-		sudo mkfs.ext4 -L "HB-DATA" /dev/mmcblk0p3
+		sleep 5
+
+		sudo mkfs.vfat -n "HB-BOOT" $sdp1; sleep 1
+		sudo mkfs.ext4 -L "HB-ROOT" $sdp2; sleep 1 
+		sudo mkfs.ext4 -L "HB-DATA" $sdp3; sleep 1
 		
-		echo "		Install the SPL loader to the 8th block of the SD"; sleep 2
-		sudo dd if=output_compile/u-boot-spl/sunxi-spl.bin of=/dev/mmcblk0 bs=1024 seek=8
+		echo "		Install the SPL loader to the 8th block of the SD"
+		sudo dd if=output_compile/u-boot-spl/sunxi-spl.bin of=$sddev bs=1024 seek=8; sleep 1
 	        # dd if=sunxi-spl.bin of=/dev/nand bs=1024 seek=8
-		echo "		Install u-boot to block 32 of the SD:"; sleep 2
-		sudo dd if=output_compile/u-boot/u-boot.bin of=/dev/mmcblk0 bs=1024 seek=32
+		echo "		Install u-boot to block 32 of the SD:"
+		sudo dd if=output_compile/u-boot/u-boot.bin of=$sddev bs=1024 seek=32; sleep 1
 		        # dd if=u-boot.bin of=/dev/nand bs=1024 seek=32
 		sudo sync
-	
+
 		if [ $UMNT =  "0" ]; then
 			sd_mnt
 		fi
@@ -74,6 +81,7 @@ if [ $rd =  "y" ]; then
 	echo "		Extract rootfs image is starting.. "; sleep 2
 	cd ..
 	sudo tar -jxvf output_compile/$rd -C ./sd_rootfs/
+	sudo cp -v patch/flash_install.sh ./sd_rootfs/usr/local/sbin/; sudo chmod a+x ./sd_rootfs/usr/local/sbin/flash_install.sh
 
 	sudo sync
 fi
@@ -101,13 +109,12 @@ if [ $rd =  "y" ]; then
 	echo " ** Copy dd image of NANDA partion.."
 	sudo cp -v patch/nanda sd_data/
 	echo " ** Copy env.txt and special u-boot-bin.."
-	sudo cp -v patch/env.txt sd_data/ ; sudo cp -v patch/u-boot.bin  sd_data/ 
+	sudo cp -v patch/env.txt sd_data/ ; sudo cp -v patch/u-boot.bin  sd_data/; sudo cp -v patch/script.MAC_HWsetup.bin sd_data/ ; 
 	echo " ** Copy flash rootfs image.."
 	sudo cp -v output_compile/debfs_armhf_flash.tar.bz2 sd_data/
 	echo " ** Copy uImage kernel.."
 	sudo cp -v output_compile/kernel_image/uImage sd_data/
 	echo " ** Copy Script install.."
-	sudo cp -v patch/flash_install.sh sd_data/
 
         sudo sync
 fi
@@ -126,7 +133,7 @@ fi
 
 read -p "  Umount partions?? [y/n]: " rd
 if [ $rd =  "y" ]; then
-	sudo umount /dev/mmcblk0p2
-	sudo umount /dev/mmcblk0p1
-	sudo umount /dev/mmcblk0p3
+	sudo umount $sdp2
+	sudo umount $sdp1
+	sudo umount $sdp3
 fi

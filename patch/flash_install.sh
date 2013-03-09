@@ -1,9 +1,18 @@
 #!/bin/bash
-# Script for install in to sd-card Kernel, and rootfs.  TIPALDI GIUSEPPE 12/2012.
+# Script for install in to nand Kernel, and rootfs.  TIPALDI GIUSEPPE 12/2012.
 # 
 clear
-read -p "  Writing flash, continue?? [y/n]: " rd
+echo "***********************************************************************"
+echo "*                        WARING WARING WARING                         *"
+echo "***********************************************************************"
+echo ""
+read -p "*               Start to re-write flash, continue?? [y/n]:            *" rd
+
+cd /mnt/data/;
 if [ $rd =  "y" ]; then
+rm -rf /mnt/NAND/b/*; ls -lsh /mnt/NAND/b/*; sleep 3
+rm -rf /mnt/NAND/a/*; ls -lsh /mnt/NAND/a/*; sleep 3
+
 	echo "Write by dd command backup of nand partions??"
 	read -p "  continue? [y/n]: " rd
 	if [ $rd =  "y" ]; then
@@ -22,6 +31,7 @@ if [ $rd =  "y" ]; then
 		cp -v uImage /mnt/NAND/a/linux/
 		cp -v env.txt /mnt/NAND/a/
 		cp -v u-boot.bin /mnt/NAND/a/linux/
+		cp -v script.MAC_HWsetup.bin /mnt/NAND/a/script.bin
 		sync
 	fi
 fi

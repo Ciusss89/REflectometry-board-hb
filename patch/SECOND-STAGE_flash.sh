@@ -20,10 +20,11 @@ echo "*********************CONFIG FILE *********************"
  mv -v interfaces /etc/network/interfaces
  mv -v rcS /etc/default/rcS
  mv -v 71hackberry /etc/apt/apt.conf.d/71hackberry
- mv -v  sshd_banner /etc/ssh/
- mv -v  sshd_config /etc/ssh/
- mv -v  lighttpd.conf /etc/lighttpd/
- mv -v  tmpfs /etc/default/
+ mv -v sshd_banner /etc/ssh/
+ mv -v sshd_config /etc/ssh/
+ mv -v lighttpd.conf /etc/lighttpd/
+ mv -v tmpfs /etc/default/
+ mv -v flight-plan-control /etc/init.d/ 
  cd ..
 echo "*...Copy configurations file ended!"; 
 
@@ -42,6 +43,9 @@ if [ $rd = "y" ]; then
 		dpkg -i CONFIG_FILE/linux-image*.deb
 		echo "8192cu" >> /etc/modules
 		echo "*NAND FINAL VERSION" >> /etc/ssh/sshd_banner
+		chmod a+x /etc/init.d/flight-plan-control
+		update-rc.d flight-plan-control defaults
+		chmod a+x /usr/local/sbin/*.sd
 		echo " YOU EDIT FSTAB, AND SPECIFY ROOT PARTIONS.."
 		nano /etc/fstab		
 		mkdir /mnt/NAND; mkdir /mnt/NAND/01_site/; mkdir /mnt/sd; mkdir /mnt/NAND/01_site/sys_state

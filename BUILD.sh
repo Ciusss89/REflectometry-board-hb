@@ -27,6 +27,7 @@ function cp_src {
         sudo cp  patch/sshd_config rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/lighttpd.conf rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/tmpfs rootfs_bd/img-debfs-armhf/CONFIG_FILE
+	sudo cp  patch/flight-plan-control rootfs_bd/img-debfs-armhf/CONFIG_FILE
         sudo cp  patch/SECOND-STAGE_flash.sh rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/01_site.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/script.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
@@ -133,7 +134,8 @@ read -p "  Save script.bin? [y/n]: " rd
 if [ $rd =  "y" ]; then
 	rm -rf output_compile/hackberry-sc*
 	mkdir -p output_compile/hackberry-script
-	mv -v script.bin output_compile/hackberry-script
+	cp -v script.bin output_compile/hackberry-script
+	mv -v script.bin patch/script.MAC_HWsetup.bin
 fi
 
 echo -e '\E[31m STAGE 3 ENDED...'

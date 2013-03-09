@@ -1,0 +1,87 @@
+#! /bin/sh
+# /etc/init.d/flight-plan-control
+# flight-plan-control
+# chkconfig: 345 20 80
+# processname: flight-plan-control
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin/:/usr/local/bin/
+DAEMON=/usr/local/sbin/flight-plan.sh
+NAME=flight-plan-control
+DESC="Flight-plan-control script"
+PIDFILE=/var/run/$NAME.pid
+
+##
+# VAR
+log_file="/mnt/NAND/01_site/sys_state/flight-plan-control-activity-log"
+ENABLE=`/mnt/NAND/01_site/sys_state/FLYMODE | grep BIT | awk '{ print $2 }'`
+
+##
+# Log file
+touch $log_file
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting script flight-plan-control"
+    echo "=======================================================" >> $log_file
+    echo "Start " >> $log_file
+    date >> $log_file
+
+    if [ $ENABLE = "1" ]; then
+	sleep 10;
+	echo 1;	echo "FLIGHT MODE DETECTED! " >> $log_file
+
+	PID=`$DAEMON $DAEMONOPTS >> $log_file & echo $!`
+	echo "Saving PID" $PID " to " $PIDFILE
+ 	       if [ -z $PID ]; then
+            		printf "%s\n" "Fail"
+        	else
+		        echo $PID > $PIDFILE
+            	printf "%s\n" "Ok"
+        	fi
+
+#	(/usr/local/sbin/flight-plan.sh >> $log_file ) &
+	elif [ $ENABLE = "0" ]; then
+	echo 0; echo "IDLE status! " >> $log_file
+	else
+	echo -1; echo "WRONG FLAG VALUE! " >> $log_file
+    fi
+
+    ;;
+  status)
+        printf "%-50s" "Checking $NAME..."
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "Process dead but pidfile exists"
+            else
+                echo "Running"
+            fi
+        else
+            printf "%s\n" "Service not running"
+        fi
+;;
+
+  stop)
+
+    printf "%-50s" "Stopping $NAME"
+    PID=`cat $PIDFILE`
+#    cd $DAEMON_PATH
+    if [ -f $PIDFILE ]; then
+	    kill -HUP $PID
+            printf "%s\n" "Ok"
+            rm -f $PIDFILE
+        else
+            printf "%s\n" "pidfile not found"
+        fi
+
+    echo "Stop " >> $log_file;  date >> $log_file
+    echo "=======================================================" >> $log_file
+    ;;
+  *)
+    echo "Usage: /etc/init.d/flight-plan-control {start|stop|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
