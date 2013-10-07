@@ -30,7 +30,8 @@ function cp_src {
 	sudo cp  patch/flight-plan-control rootfs_bd/img-debfs-armhf/CONFIG_FILE
         sudo cp  patch/SECOND-STAGE_flash.sh rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/01_site.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
-	sudo cp  patch/script.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
+#	sudo cp  patch/script.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
+	sudo cp -r patch/sbin rootfs_bd/img-debfs-armhf/CONFIG_FILE/
 	sudo cp  patch/custom_bin.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp  patch/ssh_keys.tar.bz2 rootfs_bd/img-debfs-armhf/CONFIG_FILE
 	sudo cp output_compile/kernel.deb/linux-image* rootfs_bd/img-debfs-armhf/CONFIG_FILE

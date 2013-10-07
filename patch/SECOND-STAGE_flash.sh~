@@ -7,7 +7,7 @@ echo "* : debootstrap (second-stage) is beginning.";
 echo "*...debootstrap (second-stage) ended!"; 
 
 
-PACCHETTI="dhcp3-client udev netbase ifupdown iproute openssh-server iputils-ping wget net-tools ntpdate ntp vim nano less tzdata console-tools console-common module-init-tools cpufrequtils stress htop hdparm firmware-realtek usbutils wireless-tools bzip2 hardinfo tree lighttpd elinks bc isc-dhcpd-server wireless-tools "
+PACCHETTI="dhcp3-client udev netbase ifupdown iproute openssh-server iputils-ping wget net-tools ntpdate ntp vim nano less tzdata console-tools console-common module-init-tools cpufrequtils stress htop hdparm firmware-realtek usbutils wireless-tools bzip2 hardinfo tree lighttpd elinks bc isc-dhcpd-serverwireless-tools "
 
 echo "*********************CONFIG FILE *********************"
  cd /CONFIG_FILE/
