@@ -40,9 +40,9 @@ function cp_src {
 
 function umount_deboostrap {
 	sudo umount rootfs_bd/img-debfs-armhf/proc
+	sudo rm -rf rootfs_bd/img-debfs-armhf/dev/pts
 	sudo umount rootfs_bd/img-debfs-armhf/dev/pts
 	sudo rm -rf rootfs_bd/img-debfs-armhf/usr/bin/qemu-arm-static
-	sudo rm -rf rootfs_bd/img-debfs-armhf/dev/pts
 }
 
 function mount_deboostrap {
@@ -85,14 +85,17 @@ if [ $rd =  "y" ]; then
 	# git clone https://github.com/hno/uboot-allwinner.git u-boot-allwinner-hno
 
 else
-	cd u-boot-sunxi; git pull; cd ..
+if [ -d /u-boot-sunxi ]
+	then
+		cd u-boot-sunxi; git pull; cd ..
+	fi
 fi
 
 read -p "  Building u-boot target [hackberry]? [y/n]: " rd
 if [ $rd =  "y" ]; then
 	COMPILER="arm-linux-gnueabihf-"
 	cd u-boot-sunxi/
-	make hackberry CROSS_COMPILE=$COMPILER
+	make Hackberry CROSS_COMPILE=$COMPILER
 	cd ..
 fi
 
@@ -118,8 +121,13 @@ if [ $rd =  "y" ]; then
 	git clone https://github.com/linux-sunxi/sunxi-tools.git
 	git clone https://github.com/linux-sunxi/sunxi-boards.git
 else
+
+if [ -d /sunxi-tools ]
+then
 	cd sunxi-tools; git pull; cd ..
         cd sunxi-boards; git pull; cd ..
+fi
+
 fi
 
 
@@ -157,7 +165,11 @@ if [ $rd =  "y" ]; then
 	git clone git://github.com/linux-sunxi/linux-sunxi.git
 #	cd linux-sunxi; git checkout 23e5456879db0175f571dec43095c49e181e0b10 cd ..
 else
-	cd linux-sunxi; git pull; cd ..
+
+if [ -d /linux-sunxi ]
+	then
+		cd linux-sunxi; git pull; cd ..
+	fi
 fi
 
 ##
@@ -188,7 +200,7 @@ if [ $rd = "y" ]; then
 ##
 # SETUP MAKE PROCEDURE
 	COMPILER="arm-linux-gnueabihf-"
-	DETAILS="-polito-r4"
+	DETAILS="-g.tipaldi-r5"
 	cd linux-sunxi
 	export ARCH=arm
 	export DEB_HOST_ARCH=armhf
@@ -233,9 +245,9 @@ echo -e '\E[36m STAGE 4 ENDED... '
 # http://linux-sunxi.org/Debian
 echo -e '\E[33m STAGE 5 START... '
 
-read -p "  Set up your working directory and mount empty filesystem, [y/n]: " rd
+read -p "  Set up working directory and mount empty filesystem, [y/n]: " rd
 if [ $rd = "y" ]; then
-	echo "  Build an ext4 rootfs image ( 1Gb ), and mount it in .\img-debfs-armhf  : "
+	echo "  Build ext4 image ( 1Gb ) rootfs, and mount it in .\img-debfs-armhf  : "
 	mkdir -p rootfs_bd ; cd rootfs_bd
 	dd if=/dev/zero of=debfs_armhf.img bs=1M count=1024 
 	echo " Filesystem is ext4"
@@ -243,67 +255,66 @@ if [ $rd = "y" ]; then
 	cd ..
 fi
 
-read -p "  Mount filesystem, [y/n] : " rd
+read -p "  Mount img-debfs-armhf, [y/n] : " rd
 if [ $rd = "y" ]; then
 	cd rootfs_bd; mkdir -p img-debfs-armhf 
 	sudo mount -o loop debfs_armhf.img img-debfs-armhf
 	cd ..
 fi
 
-RAMO="wheezy" # unstable -> sid, testing -> wheezy, stable -> ?
-read -p "  Create Debian/$RAMO/armhf filesystem using debootstrap [y/n] : " rd
+RAMO="jessie" # unstable -> sid, testing -> wheezy, stable -> ?
+read -p "  Init Debian/$RAMO/armhf filesystem by debootstrap [y/n] : " rd
 if [ $rd = "y" ]; then
 	cd rootfs_bd
 	sudo debootstrap --verbose --arch armhf --variant=minbase --foreign $RAMO img-debfs-armhf http://ftp.debian.org/debian
 	cd ..
 fi
 
-echo "FIRST RUN:"; echo "   I build flash rootfs version..."; echo "SECOND RUN:"; echo "   I build sd rootfs version..."
 for i in {1..2}
 do
-	read -p "  Basic setup via deboostrap...? [y/n] : " rd
+	read -p "  Basic setup via deboostrap/chroot...? [y/n] : " rd
 	if [ $rd = "y" ]; then
 		if [ $mc_flah = "0" ]; then
 			mount_deboostrap
 		fi
-		read -p "  INIT ROOTFS [y/n] : " rd
-		if [ $rd = "y" ]; then
+
 
 			if [ $i = "1" ]; then
+				echo "***FIRST RUN. [Building nand rootfs image ]";sleep 3;
 				sudo mkdir rootfs_bd/img-debfs-armhf/CONFIG_FILE; 
 				cp_src
 				echo "CONTINUE SECOND STAGE INSTALLATIONS, RUN : './CONFIG_FILE/SECOND-STAGE_flash.sh' "
 			else
+				echo "***SECOND RUN. [Building sd-card rootfs image ]"; sleep 3;
 				cp patch/SECOND-STAGE_sd.sh rootfs_bd/img-debfs-armhf/tmp/
 				sudo cp -v output_compile/kernel.deb/linux-headers* rootfs_bd/img-debfs-armhf/tmp/
 				echo "Edit fstab, RUN : './tmp/SECOND-STAGE_sd.sh', install missing developement packages "
 			fi
-		fi
+
 		sudo chroot rootfs_bd/img-debfs-armhf
 	fi
-	read -p "  Clean deboostrap? [y/n]  " rd
-	if [ $rd = "y" ]; then
-		if [ $mc_flah = "1" ]; then
-			umount_deboostrap
-		fi
-	fi
+
 	read -p "  Compress and save image? [y/n] : " rd
 	if [ $rd = "y" ]; then
 		if [ $i = "1" ]; then
 			echo "  Compres flash versions rootfs..."; sleep 3
+			umount_deboostrap
 			cd rootfs_bd/img-debfs-armhf
-			sudo tar -cvjf debfs_armhf_flash.tar.bz2 .
+			sudo tar -pcvzf img-debfs-armhf.tar.gz .
 			cd ../..
-			sudo mv -v rootfs_bd/img-debfs-armhf/debfs_armhf_flash.tar.bz2 output_compile/
+			sudo mv -v rootfs_bd/img-debfs-armhf/debfs_armhf_flash.tar.gz output_compile/
+			mount_deboostrap
 		else
+			umount_deboostrap
 			echo "  Compres sd version rootfs..."; sleep 3
 			cd rootfs_bd/img-debfs-armhf
-			sudo tar -cvjf debfs_armhf_sd.tar.bz2 .
+			sudo tar -pcvzf debfs_armhf_sd.tar.gz .
 			cd ../..
-			sudo mv -v rootfs_bd/img-debfs-armhf/debfs_armhf_sd.tar.bz2 output_compile/
+			sudo mv -v rootfs_bd/img-debfs-armhf/debfs_armhf_sd.tar.gz output_compile/
 		fi
 	fi
 done
+
 read -p "  Umount rootfs? [y/n] : " rd
 if [ $rd = "y" ]; then
 	sudo umount /dev/loop0

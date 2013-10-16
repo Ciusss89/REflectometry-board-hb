@@ -4,10 +4,10 @@
 # Politecnico di torino, REflectometry projcet
 # Dipartimento elettronica, remote sensing.
 
-sddev="/dev/sdc"
-sdp1="/dev/sdc1"
-sdp2="/dev/sdc2"
-sdp3="/dev/sdc3"
+sddev="/dev/mmcblk0"
+sdp1="/dev/mmcblk0p1"
+sdp2="/dev/mmcblk0p2"
+sdp3="/dev/mmcblk0p3"
 
 clear
 
@@ -31,7 +31,7 @@ echo "****CONTINUE ONLY IF YOUR SD-CARD RECOGNIZED AS mmcblk0****"
 read -p "  Build sd partions?? [y/n]: " rd
 if [ $rd =  "y" ]; then
 	sudo fdisk -l $sddev
-	read -p "  CONTINUE: " rd
+	read -p "  CONTINUE[n/y]: " rd
 	if [ $rd =  "n" ]; then
 		exit
 	elif [ $rd =  "y" ]; then
@@ -77,13 +77,13 @@ if [ $rd =  "y" ]; then
 	fi
 	
 	cd output_compile/
-	echo "		Rootfs aveable..."; ls *.tar.bz2; read -p "  	type rootfs image... : " rd
+	echo "		Rootfs aveable..."; ls *.tar.gz; read -p "  	type rootfs image... : " rd
 	echo "		Extract rootfs image is starting.. "; sleep 2
 	cd ..
-	sudo tar -jxvf output_compile/$rd -C ./sd_rootfs/
+	sudo tar -pxvzf output_compile/$rd -C ./sd_rootfs/
 	sudo cp -v patch/flash_install.sh ./sd_rootfs/usr/local/sbin/; sudo chmod a+x ./sd_rootfs/usr/local/sbin/flash_install.sh
 
-	sudo sync
+	sudo sync 
 fi
 
 read -p "  Install uImage kernel?? [y/n]: " rd
