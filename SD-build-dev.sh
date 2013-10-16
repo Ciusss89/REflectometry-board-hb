@@ -46,12 +46,19 @@ if [ $rd =  "y" ]; then
 		sudo mkfs.ext4 -L "HB-ROOT" $sdp2; sleep 1 
 		sudo mkfs.ext4 -L "HB-DATA" $sdp3; sleep 1
 		
-		echo "		Install the SPL loader to the 8th block of the SD"
-		sudo dd if=output_compile/u-boot-spl/sunxi-spl.bin of=$sddev bs=1024 seek=8; sleep 1
-	        # dd if=sunxi-spl.bin of=/dev/nand bs=1024 seek=8
-		echo "		Install u-boot to block 32 of the SD:"
-		sudo dd if=output_compile/u-boot/u-boot.bin of=$sddev bs=1024 seek=32; sleep 1
-		        # dd if=u-boot.bin of=/dev/nand bs=1024 seek=32
+		## LAST UPDATE 16.10.2013
+		# 
+		#A10 & A13 boots the SPL loader from block 8. This then loads actual u-boot from block 40 onwards, 
+		#counted in 1KB blocks. Replace /dev/sdX with the device name of your media
+		dd if=output_compile/u-boot/u-boot-sunxi-with-spl.bin of=/dev/$sddev bs=1024 seek=8
+
+		#If using v2013.07 or earlier use this procedure
+		#echo "		Install the SPL loader to the 8th block of the SD"
+		#sudo dd if=output_compile/u-boot-spl/sunxi-spl.bin of=$sddev bs=1024 seek=8; sleep 1
+		#echo "		Install u-boot to block 32 of the SD:"
+		#sudo dd if=output_compile/u-boot/u-boot.bin of=$sddev bs=1024 seek=32; sleep 1
+
+
 		sudo sync
 
 		if [ $UMNT =  "0" ]; then

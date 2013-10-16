@@ -85,7 +85,7 @@ if [ $rd =  "y" ]; then
 	# git clone https://github.com/hno/uboot-allwinner.git u-boot-allwinner-hno
 
 else
-if [ -d /u-boot-sunxi ]
+if [ -d u-boot-sunxi ]
 	then
 		cd u-boot-sunxi; git pull; cd ..
 	fi
@@ -102,6 +102,8 @@ fi
 
 read -p "  Save u-boot/sunxi-spl? [y/n]: " rd
 if [ $rd =  "y" ]; then
+	## UPDATE NEED
+
 	rm -rf output_compile/u-boot*
 	mkdir -p output_compile/u-boot-spl; mkdir -p output_compile/u-boot;
 
@@ -122,7 +124,7 @@ if [ $rd =  "y" ]; then
 	git clone https://github.com/linux-sunxi/sunxi-boards.git
 else
 
-if [ -d /sunxi-tools ]
+if [ -d sunxi-tools ]
 then
 	cd sunxi-tools; git pull; cd ..
         cd sunxi-boards; git pull; cd ..
@@ -159,14 +161,11 @@ echo -e '\E[36m STAGE 4 START... '
 # SOURCES 
 read -p "  Download of linux-sunxi kernel suource ? [y/n]: " rd
 if [ $rd =  "y" ]; then
-	# tesing rapo
-	#git clone -b sunxi-3.4 git://github.com/linux-sunxi/linux-sunxi.git
-	# stable rapo
 	git clone git://github.com/linux-sunxi/linux-sunxi.git
 #	cd linux-sunxi; git checkout 23e5456879db0175f571dec43095c49e181e0b10 cd ..
 else
 
-if [ -d /linux-sunxi ]
+if [ -d linux-sunxi ]
 	then
 		cd linux-sunxi; git pull; cd ..
 	fi
