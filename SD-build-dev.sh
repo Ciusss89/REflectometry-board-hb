@@ -4,6 +4,11 @@
 # Politecnico di torino, REflectometry projcet
 # Dipartimento elettronica, remote sensing.
 
+#sddev="/dev/sdc"
+#sdp1="/dev/sdc1"
+#sdp2="/dev/sdc2"
+#sdp3="/dev/sdc3"
+
 sddev="/dev/mmcblk0"
 sdp1="/dev/mmcblk0p1"
 sdp2="/dev/mmcblk0p2"
@@ -18,7 +23,7 @@ function sd_mnt {
         sudo mount $sdp1 sd_boot
         mkdir -p sd_rootfs
         sudo mount $sdp2 sd_rootfs
-        mkdir -p sd_data	
+        mkdir -p sd_data
 	sudo mount $sdp3 sd_data
 	UMNT="1"
 }
@@ -36,6 +41,9 @@ if [ $rd =  "y" ]; then
 		exit
 	elif [ $rd =  "y" ]; then
 
+		echo "Clean sd cad"
+		dd if=/dev/zero of=$sddev bs=1024 seek=544 count=128
+
 		sudo fdisk $sddev
 		echo "Partioni:"
 		sudo fdisk -l $sddev
@@ -45,19 +53,11 @@ if [ $rd =  "y" ]; then
 		sudo mkfs.vfat -n "HB-BOOT" $sdp1; sleep 1
 		sudo mkfs.ext4 -L "HB-ROOT" $sdp2; sleep 1 
 		sudo mkfs.ext4 -L "HB-DATA" $sdp3; sleep 1
-		
-		## LAST UPDATE 16.10.2013
-		# 
-		#A10 & A13 boots the SPL loader from block 8. This then loads actual u-boot from block 40 onwards, 
-		#counted in 1KB blocks. Replace /dev/sdX with the device name of your media
-		dd if=output_compile/u-boot/u-boot-sunxi-with-spl.bin of=/dev/$sddev bs=1024 seek=8
 
-		#If using v2013.07 or earlier use this procedure
-		#echo "		Install the SPL loader to the 8th block of the SD"
-		#sudo dd if=output_compile/u-boot-spl/sunxi-spl.bin of=$sddev bs=1024 seek=8; sleep 1
-		#echo "		Install u-boot to block 32 of the SD:"
-		#sudo dd if=output_compile/u-boot/u-boot.bin of=$sddev bs=1024 seek=32; sleep 1
-
+		echo "		Install the SPL loader to the 8th block of the SD"
+		sudo dd if=CONFIG_FILE/boot/u-boot-spl/sunxi-spl.bin  of=$sddev bs=1024 seek=8; sleep 1
+		echo "		Install u-boot to block 32 of the SD:"
+		sudo dd if=CONFIG_FILE/boot/u-boot/u-boot.bin of=$sddev bs=1024 seek=32; sleep 1
 
 		sudo sync
 
@@ -67,7 +67,7 @@ if [ $rd =  "y" ]; then
 
 		echo "		Copy script.bin"
 		sudo cp -v output_compile/hackberry-script/script.bin sd_boot
-	        sudo cp -v patch/sd_boot.cmd sd_boot/boot.cmd
+	        sudo cp -v CONFIG_FILE/boot/sd_boot.cmd sd_boot/boot.cmd
 
         	cd sd_boot
         	sudo mkimage -C none -A arm -T script -d boot.cmd boot.scr; sudo rm boot.cmd
@@ -88,7 +88,7 @@ if [ $rd =  "y" ]; then
 	echo "		Extract rootfs image is starting.. "; sleep 2
 	cd ..
 	sudo tar -pxvzf output_compile/$rd -C ./sd_rootfs/
-	sudo cp -v patch/flash_install.sh ./sd_rootfs/usr/local/sbin/; sudo chmod a+x ./sd_rootfs/usr/local/sbin/flash_install.sh
+	sudo cp -v CONFIG_FILE/sh/flash_install.sh ./sd_rootfs/usr/local/sbin/; sudo chmod a+x ./sd_rootfs/usr/local/sbin/flash_install.sh
 
 	sudo sync 
 fi
@@ -114,11 +114,12 @@ if [ $rd =  "y" ]; then
 	fi
 	
 	echo " ** Copy dd image of NANDA partion.."
-	sudo cp -v patch/nanda sd_data/
+	sudo cp -v CONFIG_FILE/boot/nanda sd_data/
 	echo " ** Copy env.txt and special u-boot-bin.."
-	sudo cp -v patch/env.txt sd_data/ ; sudo cp -v patch/u-boot.bin  sd_data/; sudo cp -v patch/script.MAC_HWsetup.bin sd_data/ ; 
+	sudo cp -v CONFIG_FILE/boot/env.txt sd_data/ ; sudo cp -v output_compile/u-boot/u-boot.bin  sd_data/; 
+	sudo cp -v output_compile/hackberry-script/script.bin sd_data/ 
 	echo " ** Copy flash rootfs image.."
-	sudo cp -v output_compile/debfs_armhf_flash.tar.bz2 sd_data/
+	sudo cp -v output_compile/nand-image-debfs-armhf.tar.gz sd_data/
 	echo " ** Copy uImage kernel.."
 	sudo cp -v output_compile/kernel_image/uImage sd_data/
 	echo " ** Copy Script install.."

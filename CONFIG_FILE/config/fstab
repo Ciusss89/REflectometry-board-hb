@@ -1,0 +1,19 @@
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+
+##
+# SD
+/dev/root       /               ext4    noatime,errors=remount-ro 0 1
+/dev/mmcblk0p3  /mnt/data       ext4    defaults        0       2
+/dev/nandb      /mnt/NAND/b     ext4    defaults        0       2
+/dev/nandc      /mnt/NAND/c     ext4    defaults        0       2
+/dev/nanda      /mnt/NAND/a     vfat    defaults        0       1
+
+
+##
+# FLASH
+/dev/root      /               ext4    noatime,errors=remount-ro 0 1
+/dev/nandc     /mnt/NAND/      ext4    noatime,data=writeback,barrier=0,nobh,errors=remount-ro
+/dev/mmcblk0p2 /mnt/sd         ext4    noatime,data=writeback,barrier=0,nobh,errors=remount-ro
+
